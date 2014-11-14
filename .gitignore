@@ -2,3 +2,7 @@
 *.pyc
 *.mp3
 temp/
+bin/
+include/
+lib/
+local/
