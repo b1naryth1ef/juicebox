@@ -1,0 +1,16 @@
+Flask==0.10.1
+Jinja2==2.7.3
+MarkupSafe==0.23
+Werkzeug==0.9.6
+bcrypt==1.0.2
+cffi==0.8.6
+eyeD3==0.7.5
+gevent==1.0.1
+greenlet==0.4.5
+itsdangerous==0.24
+peewee==2.4.2
+pyGravatar==0.0.6
+pycparser==2.10
+python-magic==0.4.6
+requests==2.4.3
+wsgiref==0.1.2
