@@ -172,9 +172,6 @@ class Song(BModel):
         return eyed3.load(self.location)
 
 class FTSSong(SModel):
-    class Meta:
-        database = db
-
     song = ForeignKeyField(Song)
     title = TextField()
     artist = TextField()
@@ -183,18 +180,61 @@ class FTSSong(SModel):
 class Playlist(BModel):
     owner = ForeignKeyField(User)
     title = CharField()
+    public = BooleanField(default=False)
+
+    def can_user_modify(self, user):
+        if public:
+            return True
+        elif self.owner == user:
+            return True
+        else:
+            return False
+
+    def rmv_entry(self, song):
+        entry = PlaylistEntry.get(
+            (PlaylistEntry.song == song) &
+            (PlaylistEntry.playlist == self))
+
+        # If we are no the last entry, we need to resort the playlist
+        if entry.pos < self.get_songs.count():
+            for plentry in list(self.get_songs())[entry.pos:]:
+                plentry.pos -= 1
+                plentry.save()
+
+        entry.delete_instance()
+
+    def add_entry(self, song, owner=None, pos=None):
+        playlist = list(self.get_songs())
+
+        if song.id in map(lambda i: i.song.id, playlist):
+            raise Exception("Song already exists in playlist")
+
+        # If a position is given, we may have to shuffle things around
+        if pos:
+            # Move current shit out of the way
+            for plentry in playlist[pos-1:]:
+                plentry.pos += 1
+                plentry.save()
+
+        return PlaylistEntry.create(playlist=self, song=song, owner=owner, pos=len(playlist) + 1)
 
     def get_songs(self):
-        return PlaylistEntry.join(Song).select(PlaylistEntry.playlist == self).order_by(PlaylistEntry.id)
+        return PlaylistEntry.join(Song).select(PlaylistEntry.playlist == self).order_by(PlaylistEntry.pos)
+
+class FTSPlaylist(SModel):
+    playlist = ForeignKeyField(Playlist)
+    title = TextField()
 
 class PlaylistEntry(BModel):
     playlist = ForeignKeyField(Playlist)
     song = ForeignKeyField(Song)
+    owner = ForeignKeyField(User, null=True)
+    pos = IntegerField()
 
 # TODO: stats, likes
 
 if __name__ == "__main__":
-    for table in [User, Song, Playlist, PlaylistEntry, FTSSong]:
+    for table in [User, Song, Playlist, PlaylistEntry, FTSSong, FTSPlaylist]:
         table.drop_table(True)
         table.create_table(True)
 
