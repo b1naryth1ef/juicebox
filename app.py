@@ -1,4 +1,5 @@
 import os, sys, json
+from functools import wraps
 
 from flask import Flask, request, g, jsonify, session, Response
 from werkzeug import secure_filename
@@ -34,6 +35,15 @@ class APIResponse(Response):
 
         self.data = json.dumps(data)
         self.mimetype = "application/json"
+
+# Auth Decorator
+def authed(f):
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        if not g.user:
+            raise AuthException()
+        return f(*args, **kwargs)
+    return wrapped
 
 @app.before_request
 def before_request():
@@ -76,6 +86,7 @@ def route_player_status():
 PLAYER_ACTIONS = [ "skip", "pause", "play", "stop", "shuffle", "random", "clear" ]
 
 @app.route("/api/player/<action>")
+@authed
 def route_player_actions(action):
     if action not in PLAYER_ACTIONS:
         raise APIError("Invalid Action")
@@ -88,7 +99,10 @@ def route_player_actions(action):
         app.controller.shuffle()
         return APIResponse()
 
-@app.route("/api/player/queue/songs")
+    raise APIError("Not Implementted")
+
+@app.route("/api/player/queue/song")
+@authed
 def route_player_queue_song():
     # If we're in random mode we need to empty the playlist and start over
     if app.controller.mode == Controller.Mode.RANDOM:
@@ -102,6 +116,7 @@ def route_player_queue_song():
     return APIResponse()
 
 @app.route("/api/player/queue/playlist")
+@authed
 def route_player_queue_playlist():
     if app.controller.mode == Controller.Mode.RANDOM:
         app.controller.switch_mode(Controller.Mode.QUEUE)
@@ -134,10 +149,8 @@ def route_api_songs_single(id):
     return APIResponse(song.to_dict())
 
 @app.route("/api/songs/upload", methods=["POST"])
+@authed
 def route_upload():
-    if not g.user:
-        raise AuthException()
-
     f = request.files["file"]
     if f and allowed_file(f.filename):
         return jsonify({"success": Song.new_from_file(g.user, f)})
@@ -163,10 +176,8 @@ def route_api_playlists_single(id):
     return APIResponse(pl.to_dict(tiny=False))
 
 @app.route("/api/playlists/create")
+@authed
 def route_api_playlists_create():
-    if not g.user:
-        raise AuthException()
-
     if not request.values.get("name"):
         raise APIError("Must specify name for playlist creation")
 
@@ -178,10 +189,8 @@ def route_api_playlists_create():
     return APIResponse({"id": id})
 
 @app.route("/api/playlist/<id>/<action>")
+@authed
 def route_api_playlist_modify(id, action):
-    if not g.user:
-        raise AuthException()
-
     try:
         playlist = Playlist.get(Playlist.id == id)
     except Playlist.DoesNotExist:
@@ -223,10 +232,8 @@ def route_api_search():
     })
 
 @app.route("/api/users/settings")
+@authed
 def route_users_settings():
-    if not g.user:
-        raise AuthException()
-
     if request.values.get("slackid"):
         g.user.slackid = request.values.get("slackid")
 
@@ -237,16 +244,17 @@ def route_users_settings():
     return APIResponse()
 
 @app.route("/api/users/change_password")
+@authed
 def route_users_change_password():
-    if not g.user:
-        raise AuthException()
-
     pw = requests.values.get("password")
     g.user.password = g.user.hash_passowrd(pw)
     return APIResponse()
 
 @app.route("/login", methods=["POST"])
 def route_login():
+    if g.user:
+        raise APIError("Already logged in!")
+
     user = request.values.get("user")
     pw = request.values.get("password")
 
@@ -266,6 +274,9 @@ def route_login():
 
 @app.route("/register")
 def route_register(x):
+    if g.user:
+        raise APIError("Already logged in!")
+
     params = {k:v for k, v in request.values.items() if k in ["username", "password", "email"]}
 
     if not all(params.values()):

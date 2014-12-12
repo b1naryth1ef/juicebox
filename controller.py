@@ -11,10 +11,10 @@ class Controller(object):
         QUEUE = 1
         RANDOM = 2
 
-    def __init__(self, host="localhost", port=6600):
+    def __init__(self, host="/run/mpd/socket"):
         self.cli = MPDClient()
         self.cli.timeout = 10
-        self.cli.connect(host, port)
+        self.cli.connect(host, 0)
         log.info("Controller connected to MPD server version %s" % self.cli.mpd_version)
 
         self.mode = Controller.Mode.NONE
