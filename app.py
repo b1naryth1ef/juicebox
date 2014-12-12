@@ -4,10 +4,12 @@ from flask import Flask, request, g, jsonify, session, Response
 from werkzeug import secure_filename
 from peewee import SQL
 
+from controller import Controller
 from db import MUSIC_DIR, User, Song, FTSSong, Playlist, FTSPlaylist
 
 app = Flask("juicebox")
 app.secret_key = "swag"
+app.controller = Controller()
 
 MUSIC_EXT = set(['mp3'])
 
@@ -25,7 +27,7 @@ class APIError(AppHandledException): pass
 
 # A custom app response
 class APIResponse(Response):
-    def __init__(self, data):
+    def __init__(self, data={}):
         Response.__init__(self)
         if not 'success' in data:
             data['success'] = True
@@ -67,12 +69,57 @@ def app_handle_api_error(e):
         "msg": msg
     }), code
 
+@app.route("/api/player/status")
+def route_player_status():
+    pass
+
+PLAYER_ACTIONS = [ "skip", "pause", "play", "stop", "shuffle", "random", "clear" ]
+
+@app.route("/api/player/<action>")
+def route_player_actions(action):
+    if action not in PLAYER_ACTIONS:
+        raise APIError("Invalid Action")
+
+    if action == "random":
+        app.controller.switch_mode(Controller.Mode.RANDOM)
+        return APIResponse()
+
+    if action == "shuffle":
+        app.controller.shuffle()
+        return APIResponse()
+
+@app.route("/api/player/queue/songs")
+def route_player_queue_song():
+    # If we're in random mode we need to empty the playlist and start over
+    if app.controller.mode == Controller.Mode.RANDOM:
+        app.controller.switch_mode(Controller.Mode.QUEUE)
+
+    try:
+        app.controller.add_song(Song.get(Song.id == request.values.get("song")))
+    except Song.DoesNotExist:
+        return APIError("Invalid Song ID")
+
+    return APIResponse()
+
+@app.route("/api/player/queue/playlist")
+def route_player_queue_playlist():
+    if app.controller.mode == Controller.Mode.RANDOM:
+        app.controller.switch_mode(Controller.Mode.QUEUE)
+
+    try:
+        app.controller.add_playlist(Playlist.get(Playlist.id == request.values.get("playlist")))
+    except Playlist.DoesNotExist:
+        return APIError("Invalid Playlist ID")
+
+    return APIResponse()
+
 @app.route("/api/songs")
 def route_api_songs():
     page = int(request.values.get("page", 1))
 
     songs = Song.select(User.username,
-            *map(lambda i: getattr(Song, i), Song.DICT_FIELDS)).join(User).paginate(page, 100)
+            *map(lambda i: getattr(Song, i), Song.DICT_FIELDS)).join(
+        User).paginate(page, 100).order_by(Song.added_date)
     return APIResponse({
         "page": page,
         "songs": map(lambda i: i.to_dict(), list(songs))
@@ -157,7 +204,6 @@ def route_api_playlist_modify(id, action):
         playlist.rmv_song(song)
         return APIResponse({})
 
-
 @app.route("/api/search")
 def route_api_search():
     if not request.values.get("query"):
@@ -176,14 +222,6 @@ def route_api_search():
         "playlists": map(lambda i: i.playlist.to_dict(), list(playlists))
     })
 
-@app.route("/api/enqueue")
-def route_api_enqueue():
-    pass
-
-@app.route("/api/control/<action>")
-def route_api_control(action):
-    pass
-
 @app.route("/api/users/settings")
 def route_users_settings():
     if not g.user:
@@ -192,8 +230,11 @@ def route_users_settings():
     if request.values.get("slackid"):
         g.user.slackid = request.values.get("slackid")
 
+    if request.values.get("email"):
+        g.user.email = request.values.get("email")
+
     g.user.save()
-    return APIResponse({})
+    return APIResponse()
 
 @app.route("/api/users/change_password")
 def route_users_change_password():
@@ -202,7 +243,7 @@ def route_users_change_password():
 
     pw = requests.values.get("password")
     g.user.password = g.user.hash_passowrd(pw)
-    return APIResponse({})
+    return APIResponse()
 
 @app.route("/login", methods=["POST"])
 def route_login():
@@ -210,36 +251,36 @@ def route_login():
     pw = request.values.get("password")
 
     if not user or not pw:
-        return jsonify({"success": False})
+        raise APIError("Invalid Paramaters")
 
     try:
         u = User.get(User.username == user)
     except User.DoesNotExist:
-        return jsonify({"success": False})
+        raise APIError("Incorrect Username")
 
     if not u.check_password(pw):
-        return jsonify({"success": False})
+        raise APIError("Incorrect Password")
 
     session["id"] = u.id
-    return jsonify({"success": True})
+    return APIResponse()
 
 @app.route("/register")
 def route_register(x):
     params = {k:v for k, v in request.values.items() if k in ["username", "password", "email"]}
 
     if not all(params.values()):
-        return jsonify({"success": False, "msg": "Missing params"})
+        raise APIError("Missing required paramaters!")
 
     try:
         User.get((User.username == params["username"]) | (User.email == params["email"]))
-        return jsonify({"success": False, "msg": "Username or Email already exists"})
+        raise APIError("User with that username/email already exists!")
     except User.DoesNotExist: pass
 
     u = User(username=params["username"], email=params["email"])
     u.password = User.hash_password(params["password"])
 
     session["id"] = u.save()
-    return jsonify({"success": True})
+    return APIResponse()
 
 def run():
     if not os.path.exists(MUSIC_DIR):

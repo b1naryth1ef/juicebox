@@ -1,9 +1,10 @@
 import os, sys
 import bcrypt, eyed3, uuid
 
+from datetime import datetime
+
 from peewee import *
 from playhouse.sqlite_ext import SqliteExtDatabase, FTSModel
-
 from gravatar import Gravatar
 
 db = SqliteExtDatabase("juicebox.db", threadlocals=True)
@@ -94,6 +95,14 @@ class Song(BModel):
     mediatype = IntegerField(default=MediaType.SONG)
     checksum = CharField(null=False)
     location = CharField()
+    added_date = DateTimeField(default=datetime.utcnow)
+
+    def as_mpd(self):
+        return self.location
+
+    @classmethod
+    def as_mpd_playlist(cls, qset):
+        return map(lambda i: os.path.join(MUSIC_DIR, i.location), list(qset))
 
     def get_search_model(self):
         return FTSSong
@@ -217,6 +226,9 @@ class Playlist(BModel):
                 plentry.save()
 
         return PlaylistEntry.create(playlist=self, song=song, owner=owner, pos=len(playlist) + 1)
+
+    def as_mpd(self):
+        return map(lambda i: i.as_mpd(), self.get_songs())
 
     def get_songs(self):
         return PlaylistEntry.join(Song).select(PlaylistEntry.playlist == self).order_by(PlaylistEntry.pos)
