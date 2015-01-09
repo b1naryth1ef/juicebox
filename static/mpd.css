@@ -2,9 +2,16 @@ body {
   font-family: sans-serif;
 }
 .mpd_window {
-  background-color: #D3D3D3;
   width: 20%;
+  border: 2px solid;
+}
+.song_info {
+  background-color: #D3D3D3;
 }
 .control_link {
   padding-right: 8px;
+}
+.monospace {
+  font-family: monospace;
+  font-size: 150%;
 }

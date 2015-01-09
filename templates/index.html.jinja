@@ -16,14 +16,11 @@
     <script type='text/template' id='mpd_template'>
       <div class='mpd_window'>
         <div class='song_info'>
-          <div>
+          <div class='monospace'>
             <label><%- title %></label>
           </div>
-          <div>
-            <label><%- artist %></label> - <label><%- album %></label>
-          </div>
-          <div>
-            <label><%- state %></label>
+          <div class='monospace'>
+            <small><label><%- artist %></label> - <label><%- album %></label></small>
           </div>
         </div>
         <div class='mpd_controls'>
