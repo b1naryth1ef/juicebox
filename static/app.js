@@ -40,9 +40,6 @@ $(function() {
     },
     clear: function() {
       console.log('clear');
-    },
-    get_status: function() { // status is a javscript kw :(
-      $.getJSON('/api/player/status')
     }
   });
 
@@ -81,6 +78,27 @@ $(function() {
     }
   });
 
+  var status_ping = function() {
+    MPDApp.update_status();
+  }
+
+  var move_slider = function() {
+    var t = Number($('#time').text());
+    var current_status = MPDApp.mpd.attributes.now_playing.attributes.state;
+    console.log(current_status);
+    if (current_status === 'stop') {
+      t = 0;
+    } else if (current_status === 'play' || current_status === 'pause') {
+      t = t + 1
+      elapsed = MPDApp.mpd.attributes.now_playing.attributes.elapsed;
+    }
+    $('#timeslider').val(t);
+    $('#time').text(t);
+  }
+
   var MPDApp = new MPDView;
   MPDApp.render();
+
+  setInterval(status_ping, 10000);
+  setInterval(move_slider, 1000);
 });
