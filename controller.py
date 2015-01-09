@@ -14,7 +14,7 @@ class Controller(object):
     def __init__(self, host="/run/mpd/socket"):
         self.cli = MPDClient()
         self.cli.timeout = 10
-        self.idletimeout = None
+        self.cli.idletimeout = None
         self.cli.connect(host, 0)
         log.info("Controller connected to MPD server version %s" % self.cli.mpd_version)
 

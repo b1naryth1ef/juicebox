@@ -83,7 +83,7 @@ def app_handle_api_error(e):
 def route_url_root():
     if not g.user:
       return redirect("login", code=302)
-    return render_template('index.html.jinja')
+    return render_template('index.html')
 
 @app.route("/api/player/status")
 def route_player_status():
@@ -278,7 +278,7 @@ def route_login():
         return redirect("/", code=302)
 
     if request.method == "GET":
-      return render_template("login.html.jinja")
+      return render_template("login.html")
 
     user = request.values.get("user")
     pw = request.values.get("password")
