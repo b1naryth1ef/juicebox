@@ -1,7 +1,7 @@
 import os, sys, json
 from functools import wraps
 
-from flask import Flask, request, g, jsonify, session, Response
+from flask import Flask, request, render_template, g, jsonify, session, Response
 from werkzeug import secure_filename
 from peewee import SQL
 
@@ -78,6 +78,10 @@ def app_handle_api_error(e):
         "success": False,
         "msg": msg
     }), code
+
+@app.route("/")
+def route_url_root():
+    return render_template('index.html.jinja')
 
 @app.route("/api/player/status")
 def route_player_status():
