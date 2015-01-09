@@ -1,7 +1,7 @@
 import os, sys, json
 from functools import wraps
 
-from flask import Flask, request, render_template, g, jsonify, session, Response
+from flask import Flask, request, render_template, g, jsonify, session, redirect, Response
 from werkzeug import secure_filename
 from peewee import SQL
 
@@ -81,13 +81,15 @@ def app_handle_api_error(e):
 
 @app.route("/")
 def route_url_root():
+    if not g.user:
+      return redirect("login", code=302)
     return render_template('index.html.jinja')
 
 @app.route("/api/player/status")
 def route_player_status():
-    pass
+    return APIResponse(app.controller.status())
 
-PLAYER_ACTIONS = [ "skip", "pause", "play", "stop", "shuffle", "random", "clear" ]
+PLAYER_ACTIONS = [ "skip", "pause", "play", "stop", "shuffle", "random", "clear", "previous" ]
 
 @app.route("/api/player/<action>")
 @authed
@@ -102,6 +104,22 @@ def route_player_actions(action):
     if action == "shuffle":
         app.controller.shuffle()
         return APIResponse()
+
+    if action == "play":
+      app.controller.play()
+      return APIResponse()
+
+    if action == "pause":
+      app.controller.pause()
+      return APIResponse()
+
+    if action == "stop":
+      app.controller.stop()
+      return APIResponse()
+
+    if action == "previous":
+      app.controller.previous()
+      return APIResponse()
 
     raise APIError("Not Implementted")
 
@@ -254,11 +272,33 @@ def route_users_change_password():
     g.user.password = g.user.hash_passowrd(pw)
     return APIResponse()
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET", "POST"])
 def route_login():
     if g.user:
-        raise APIError("Already logged in!")
+        return redirect("/", code=302)
 
+    if request.method == "GET":
+      return render_template("login.html.jinja")
+
+    user = request.values.get("user")
+    pw = request.values.get("password")
+
+    if not user or not pw:
+        raise APIError("Invalid Paramaters")
+
+    try:
+        u = User.get(User.username == user)
+    except User.DoesNotExist:
+        raise APIError("Incorrect Username")
+
+    if not u.check_password(pw):
+        raise APIError("Incorrect Password")
+
+    session["id"] = u.id
+    return redirect("/", code=302)
+
+@app.route("/api/login", methods=["POST"])
+def route_api_login():
     user = request.values.get("user")
     pw = request.values.get("password")
 
@@ -277,7 +317,7 @@ def route_login():
     return APIResponse()
 
 @app.route("/register")
-def route_register(x):
+def route_register():
     if g.user:
         raise APIError("Already logged in!")
 

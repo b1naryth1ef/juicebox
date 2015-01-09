@@ -4,9 +4,36 @@
     <meta charset="UTF-8" />
     <title>JuiceBox</title>
     <meta name="description" content="A Jukebox." />
+    <script src='http://underscorejs.org/underscore-min.js'></script>
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
+    <script src='http://backbonejs.org/backbone-min.js'></script>
+    <link rel='stylesheet' type='text/css' href='static/mpd.css'>
   </head>
   <body>
     <h1>JuiceBox</h1>
-    <p>Hello, world.</p>
+    <div id='mpd'></div>
+    <script type='text/template' id='mpd_template'>
+      <div class='mpd_window'>
+        <div class='song_info'>
+          <div>
+            <label><%- title %></label>
+          </div>
+          <div>
+            <label><%- artist %></label> - <label><%- album %></label>
+          </div>
+        </div>
+        <div class='mpd_controls'>
+          <a href='#' data-operation='play' class='control_link'>Play</a><br />
+          <a href='#' data-operation='pause' class='control_link'>Pause</a><br />
+          <a href='#' data-operation='previous' class='control_link'>Previous</a><br />
+          <a href='#' data-operation='stop' class='control_link'>Stop</a><br />
+          <a href='#' data-operation='skip' class='control_link'>Skip</a><br />
+          <a href='#' data-operation='shuffle' class='control_link'>Shuffle</a><br />
+          <a href='#' data-operation='random' class='control_link'>Random</a><br />
+          <a href='#' data-operation='clear' class='control_link'>Clear</a><br />
+        </div>
+      </div>
+    </script>
+    <script src='static/app.js'></script>
   </body>
 </html>
