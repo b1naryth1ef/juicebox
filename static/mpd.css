@@ -1,3 +1,10 @@
+body {
+  font-family: sans-serif;
+}
 .mpd_window {
   background-color: #D3D3D3;
+  width: 20%;
+}
+.control_link {
+  padding-right: 8px;
 }

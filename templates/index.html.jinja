@@ -8,6 +8,7 @@
     <script src='https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script>
     <script src='http://backbonejs.org/backbone-min.js'></script>
     <link rel='stylesheet' type='text/css' href='static/mpd.css'>
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
   </head>
   <body>
     <h1>JuiceBox</h1>
@@ -26,14 +27,14 @@
           </div>
         </div>
         <div class='mpd_controls'>
-          <a href='#' data-operation='play' class='control_link'>Play</a><br />
-          <a href='#' data-operation='pause' class='control_link'>Pause</a><br />
-          <a href='#' data-operation='previous' class='control_link'>Previous</a><br />
-          <a href='#' data-operation='stop' class='control_link'>Stop</a><br />
-          <a href='#' data-operation='skip' class='control_link'>Skip</a><br />
-          <a href='#' data-operation='shuffle' class='control_link'>Shuffle</a><br />
-          <a href='#' data-operation='random' class='control_link'>Random</a><br />
-          <a href='#' data-operation='clear' class='control_link'>Clear</a><br />
+          <i class='fa fa-2x fa-play control_link' data-operation='play' title='Play'></i>
+          <i class='fa fa-2x fa-pause control_link' data-operation='pause' title='Pause'></i>
+          <i class='fa fa-2x fa-fast-backward control_link' data-operation='previous' title='Previous'></i>
+          <i class='fa fa-2x fa-stop control_link' data-operation='stop' title='Stop'></i>
+          <i class='fa fa-2x fa-fast-forward control_link' data-operation='skip' title='Next'></i>
+          <i class='fa fa-2x fa-random control_link' data-operation='shuffle' title='Shuffle'></i>
+          <i class='fa fa-2x fa-question control_link' data-operation='random' title='Random'></i>
+          <i class='fa fa-2x fa-times control_link' data-operation='clear' title='Clear all'></i>
         </div>
       </div>
     </script>
