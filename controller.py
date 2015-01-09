@@ -47,3 +47,17 @@ class Controller(object):
             self.cli.single(0)
             self.cli.clear()
 
+    def status(self):
+      return dict(self.cli.status().items() + self.cli.currentsong().items())
+
+    def play(self):
+      self.cli.play()
+
+    def pause(self):
+      self.cli.pause()
+
+    def stop(self):
+      self.cli.stop()
+
+    def previous(self):
+      self.cli.previous()

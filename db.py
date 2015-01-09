@@ -76,10 +76,10 @@ class User(BModel):
 
     @staticmethod
     def hash_password(pw):
-        return bcrypt.hashpw(pw, bcrypt.gensalt())
+        return bcrypt.hashpw(pw.encode('utf-8'), bcrypt.gensalt())
 
     def check_password(self, pw):
-        return bcrypt.hashpw(pw, self.password) == self.password
+        return bcrypt.hashpw(pw.encode('utf-8'), self.password.encode('utf-8')) == self.password.encode('utf-8')
 
 class Song(BModel):
     SEARCHABLE = True
@@ -102,7 +102,7 @@ class Song(BModel):
 
     @classmethod
     def as_mpd_playlist(cls, qset):
-        return map(lambda i: os.path.join(MUSIC_DIR, i.location), list(qset))
+        return map(lambda i: i.location, list(qset))
 
     def get_search_model(self):
         return FTSSong
