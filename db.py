@@ -1,5 +1,5 @@
 import os, sys
-import bcrypt, eyed3, uuid
+import bcrypt, eyed3, uuid, pygn
 
 from datetime import datetime
 
@@ -11,6 +11,8 @@ db = SqliteExtDatabase("juicebox.db", threadlocals=True)
 
 MUSIC_DIR = "data/music"
 MD5SUM = "md5" if sys.platform == "darwin" else "md5sum"
+GN_CLI = "3392512-77AC0BD72360CA0653409F31B97412CF"
+GN_USR = pygn.register(GN_CLI)
 
 class BModel(Model):
     SEARCHABLE = False
@@ -92,6 +94,7 @@ class Song(BModel):
     title = CharField()
     artist = CharField()
     album = CharField(null=True)
+    cover = CharField(null=True)
     mediatype = IntegerField(default=MediaType.SONG)
     checksum = CharField(null=False)
     location = CharField()
@@ -133,6 +136,7 @@ class Song(BModel):
         # First lets grab the metadata
         cur = os.getcwd()
         os.chdir(MUSIC_DIR)
+
         meta = eyed3.load(os.path.basename(temp_name))
         os.chdir(cur)
 
@@ -157,11 +161,18 @@ class Song(BModel):
         if count:
             return -1
 
+        # Attempt to get album art
+        pygn_meta = pygn.search(clientID=GN_CLI, userID=GN_USR,
+            artist=meta.tag.artist,
+            album=meta.tag.album,
+            track=meta.tag.title)
+
         song = cls()
         song.owner = user
         song.title = meta.tag.title
         song.artist = meta.tag.artist
         song.album = meta.tag.album
+        song.cover = pygn_meta.get("album_art_url")
         song.location = song.create_song_path()
         song.checksum = checksum
         os.rename(temp_name, song.location)
