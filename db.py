@@ -185,6 +185,7 @@ class Song(BModel):
             "title": self.title,
             "artist": self.artist,
             "album": self.album,
+            "cover_url": self.cover,
             "checksum": self.checksum
         }
 
