@@ -40,6 +40,9 @@ $(function() {
     },
     clear: function() {
       console.log('clear');
+    },
+    seek: function(ts) {
+      $.get('/api/player/seek?ts=' + ts.toString());
     }
   });
 
@@ -73,6 +76,10 @@ $(function() {
       $(this.el).find('.control_link').on('click', function(e) {
         var operation = e.target.dataset.operation;
         _this.mpd[operation]();
+        _this.update_status();
+      });
+      $('#timeslider').on('change', function() {
+        _this.mpd.seek($('#timeslider').val());
         _this.update_status();
       });
     }

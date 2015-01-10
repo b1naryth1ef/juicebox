@@ -89,7 +89,7 @@ def route_url_root():
 def route_player_status():
     return APIResponse(app.controller.status())
 
-PLAYER_ACTIONS = [ "skip", "pause", "play", "stop", "shuffle", "random", "clear", "previous" ]
+PLAYER_ACTIONS = [ "skip", "pause", "play", "stop", "shuffle", "random", "clear", "previous", "seek" ]
 
 @app.route("/api/player/<action>")
 @authed
@@ -119,6 +119,15 @@ def route_player_actions(action):
 
     if action == "previous":
       app.controller.previous()
+      return APIResponse()
+
+    if action == "seek":
+      ts = request.values.get("ts")
+
+      if not ts:
+        return APIError("Invalid ts")
+
+      app.controller.seek(ts)
       return APIResponse()
 
     raise APIError("Not Implementted")
