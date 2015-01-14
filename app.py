@@ -48,8 +48,12 @@ def authed(f):
 @app.before_request
 def before_request():
     g.user = None
-    if 'id' in session:
-        g.user = User.get(User.id == session['id'])
+    try:
+        if 'id' in session:
+            g.user = User.get(User.id == session['id'])
+
+    except User.DoesNotExist:
+        g.user = None
 
     if "test" in request.headers:
         g.user = User.get(User.id == request.headers.get("test"))
