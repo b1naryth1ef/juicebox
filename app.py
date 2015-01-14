@@ -329,8 +329,33 @@ def route_api_login():
     session["id"] = u.id
     return APIResponse()
 
-@app.route("/register")
+@app.route("/register", methods=["GET", "POST"])
 def route_register():
+    if g.user:
+        return redirect("/", code=302)
+
+    if request.method == "GET":
+        return render_template("register.html")
+
+    params = {k:v for k, v in request.values.items() if k in ["username", "password", "email"]}
+
+    if not all(params.values()):
+        return redirect("/", code=302)
+
+    try:
+        User.get((User.username == params["username"]) | (User.email == params["email"]))
+        return redirect("/", code=302)
+    except User.DoesNotExist: pass
+
+    u = User(username=params["username"], email=params["email"])
+    u.password = User.hash_password(params["password"])
+
+    session["id"] = u.save()
+    g.user = u
+    return redirect("/", code=302)
+
+@app.route("/register_api")
+def route_register_api():
     if g.user:
         raise APIError("Already logged in!")
 
