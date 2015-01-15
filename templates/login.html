@@ -1,12 +1,6 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>JuiceBox</title>
-    <meta name="description" content="A Jukebox." />
-  </head>
-  <body>
-    <h1>JuiceBox</h1>
+{% extends "base.html" %}
+{% block body %}
+<h1>JuiceBox</h1>
     <form method='post' action='/login'>
       <label for='user'>Username:</label><input type='text' name='user'><br />
       <label for='password'>Password:</label><input type='password' name='password'><br />
@@ -14,5 +8,4 @@
     </form>
     <br />
     New user? <a href='/register'>Signup here.</a>
-  </body>
-</html>
+{% endblock %}

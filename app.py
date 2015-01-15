@@ -4,6 +4,7 @@ from functools import wraps
 from flask import Flask, request, render_template, g, jsonify, session, redirect, Response
 from werkzeug import secure_filename
 from peewee import SQL
+import soco
 
 from controller import Controller
 from db import MUSIC_DIR, User, Song, FTSSong, Playlist, FTSPlaylist
@@ -373,6 +374,25 @@ def route_register_api():
     u.password = User.hash_password(params["password"])
 
     session["id"] = u.save()
+    return APIResponse()
+
+@app.route("/api/sonos/list")
+def route_sonos_list():
+    speakers = soco.discover()
+    return APIResponse({
+        "players": {sp.player_name: sp.ip_address for sp in speakers}
+    })
+
+@app.route("/api/sonos/start")
+def route_sonos_start():
+    sonos = soco.Soco(request.values.get("ip"))
+    sonos.play_uri("TODO!")
+    return APIResponse()
+
+@app.route("/api/sonos/stop")
+def route_sonos_stop():
+    sonos = soco.Soco(request.values.get("ip"))
+    sonos.stop()
     return APIResponse()
 
 def run():

@@ -1,12 +1,6 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>JuiceBox</title>
-    <meta name="description" content="A Jukebox." />
-  </head>
-  <body>
-    <h1>JuiceBox - signup</h1>
+{% extends "base.html" %}
+{% block body %}
+<h1>JuiceBox - signup</h1>
     <form method='post' action='/register'>
       <label for='username'>Username:</label><input type='text' name='username'><br />
       <label for='email'>email:</label><input type='text' name='email'><br />
@@ -14,5 +8,4 @@
       <label for='password_confirm'>Password (again):</label><input type='password' name='password_confirm'><br />
       <input type='submit' value='Register'>
     </form>
-  </body>
-</html>
+{% endblock %}
