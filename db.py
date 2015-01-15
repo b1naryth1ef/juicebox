@@ -101,11 +101,10 @@ class Song(BModel):
     added_date = DateTimeField(default=datetime.utcnow)
 
     def as_mpd(self):
-        return self.location
-
-    @classmethod
-    def as_mpd_playlist(cls, qset):
-        return map(lambda i: i.location, list(qset))
+        """
+        Returns the location of this song as a mpd-queueable file-path
+        """
+        return "file://" + os.path.join(os.getcwd(), self.location)
 
     def get_search_model(self):
         return FTSSong
@@ -126,6 +125,10 @@ class Song(BModel):
 
         DIR = os.path.join(DIR, self.title+".mp3")
         return DIR
+
+    @classmethod
+    def as_mpd_playlist(cls, qset):
+        return map(lambda i: i.as_mpd(), list(qset))
 
     @classmethod
     def new_from_file(cls, user, fobj):
