@@ -248,6 +248,14 @@ class Playlist(BModel):
     def get_songs(self):
         return PlaylistEntry.join(Song).select(PlaylistEntry.playlist == self).order_by(PlaylistEntry.pos)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "owner": self.owner.id,
+            "title": self.title,
+            "public": self.public
+        }
+
 class FTSPlaylist(SModel):
     playlist = ForeignKeyField(Playlist)
     title = TextField()

@@ -217,12 +217,12 @@ def route_api_playlists_create():
     if not request.values.get("name"):
         raise APIError("Must specify name for playlist creation")
 
-    id =Playlist.create(
+    p =Playlist.create(
         owner=g.user,
         title=request.values.get("name"),
         public=request.values.get("public", False))
 
-    return APIResponse({"id": id})
+    return APIResponse({"id": p.id})
 
 @app.route("/api/playlist/<id>/<action>")
 @authed
