@@ -49,7 +49,17 @@ class Controller(object):
             self.cli.clear()
 
     def status(self):
-      return dict(self.cli.status().items() + self.cli.currentsong().items())
+      current_song = self.cli.currentsong()
+      status = self.cli.status().items() + current_song.items()
+      if 'title' in current_song:
+          try:
+              s = Song.get(Song.title == current_song['title'])
+              status += s.to_dict().items()
+          except Song.DoesNotExist: pass
+
+      status = dict(status)
+      status['playlist'] = self.cli.playlistinfo()
+      return status
 
     def play(self):
       self.cli.play()
