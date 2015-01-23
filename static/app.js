@@ -8,29 +8,53 @@ $(function() {
       genre: 'No genre',
       state: 'stop',
       time: 0,
-      elapsed: 0
-    }
-  })
+      elapsed: 0,
+      id: -1
+    },
+    urlRoot: '/api/songs',
+  });
 
-  var MPD = Backbone.Model.extend({
+  var Playlist = Backbone.Model.extend({
+    defaults: {
+      owner: -1,
+      is_public: false,
+      id: -1,
+      title: 'No title'
+    },
+    parse: function(response) {
+      response.is_public = response['public'];
+      delete response['public'];
+      return response;
+    },
+    urlRoot: '/api/playlists'
+  });
+
+  var PlaylistCollection = Backbone.Collection.extend({
+    model: Playlist,
+    url: '/api/playlists',  
+    parse: function(response) {
+      return response.playlists;
+    }
+  });
+
+  var Player = Backbone.Model.extend({
+    urlRoot: '/api/player',
+    mpd_status: {},
+    mpd_playlist: [],
     play: function() {
-      $.get('/api/player/play');
-      console.log('play');
+      $.get(this.urlRoot + '/play');
     },
     pause: function() {
-      $.get('/api/player/pause');
-      console.log('pause');
+      $.get(this.urlRoot + '/pause');
     },
-    skip: function() {
-      console.log('skip');
+    next: function() {
+      $.get(this.urlRoot + '/next');
     },
     previous: function() {
-      $.get('/api/player/previous');
-      console.log('previous');
+      $.get(this.urlRoot + '/previous');
     },
     stop: function() {
-      $.get('/api/player/stop');
-      console.log('stop');
+      $.get(this.urlRoot + '/stop');
     },
     shuffle: function() {
       console.log('shuffle');
@@ -42,70 +66,73 @@ $(function() {
       console.log('clear');
     },
     seek: function(ts) {
-      $.get('/api/player/seek?ts=' + ts.toString());
-    }
-  });
-
-  var MPDView = Backbone.View.extend({
-    el: $('#mpd'),
-    initialize: function() {
-      this.mpd = new MPD({
-        now_playing: new Song(Song.defaults)
-      })
-      this.mpd_template = _.template($('#mpd_template').html());
-      window.mpd = this.mpd;
-      this.update_status();
+      $.get(this.urlRoot + '/seek?ts=' + ts.toString());
     },
     update_status: function() {
       var _this = this;
-      $.getJSON('/api/player/status').success(function(data) {
-        _this.mpd.set({ now_playing: new Song($.extend(Song.defaults, data)) });
-        _this.render();
+      $.getJSON(this.urlRoot + '/status').success(function(data) {
+        _this.mpd_playlist = data.playlist;
+        delete data.playlist
+        _this.mpd_status = data;
       });
-
     },
-    render: function() {
+    update_status_synch: function() {
       var _this = this;
-      var current_state = this.mpd.attributes.now_playing.attributes.state;
-      $(this.el).html(this.mpd_template(_this.mpd.attributes.now_playing.attributes));
-      if (current_state == 'play') {
-        $('.fa-play').css('color', 'green');
-      } else if (current_state == 'stop' || current_state == 'pause') {
-        $('.fa-' + current_state).css('color', 'red');
-      }
-      $(this.el).find('.control_link').on('click', function(e) {
-        var operation = e.target.dataset.operation;
-        _this.mpd[operation]();
-        _this.update_status();
-      });
-      $('#timeslider').on('change', function() {
-        _this.mpd.seek($('#timeslider').val());
-        _this.update_status();
+      $.ajax({
+        type: "GET",
+        url: this.urlRoot + '/status',
+        async: false,
+        success: function(data) {
+          _this.mpd_playlist = data.playlist;
+          delete data.playlist
+          _this.mpd_status = data;
+        }
       });
     }
   });
 
-  var status_ping = function() {
-    MPDApp.update_status();
-  }
+  var PlayerView = Backbone.View.extend({
+    el: $('#mpd'),
+    initialize: function() {
+      this.player = new Player();
+      this.mpd_template = _.template($('#mpd_template').html());
+      this.player.update_status_synch();
+    },
+    render: function() {
+      var _this = this;
+      var current_state = _this.player.mpd_status.state;
+      $(this.el).html(this.mpd_template({
+        now_playing: _this.player.mpd_status,
+        playlist: _this.player.mpd_playlist
+      }));
 
-  var move_slider = function() {
-    var t = Number($('#time').text());
-    var current_status = MPDApp.mpd.attributes.now_playing.attributes.state;
-    console.log(current_status);
-    if (current_status === 'stop') {
-      t = 0;
-    } else if (current_status === 'play' || current_status === 'pause') {
-      t = t + 1
-      elapsed = MPDApp.mpd.attributes.now_playing.attributes.elapsed;
+      $('.playlist_entry').removeClass('playlist_playing');
+      if (current_state == 'play') {
+        $('.fa-play').css('color', 'green');
+        $('#song_' + _this.player.mpd_status.songid).addClass('playlist_playing');
+      } else if (current_state == 'stop' || current_state == 'pause') {
+        $('.fa-' + current_state).css('color', 'red');
+      }
+      $('#timeslider').val(_this.player.mpd_status.elapsed);
+      $(this.el).find('.control_link').on('click', function(e) {
+        var operation = e.target.dataset.operation;
+        _this.player[operation]();
+        _this.player.update_status();
+        _this.render();
+      });
+      $('#timeslider').on('change', function() {
+        _this.player.seek($('#timeslider').val());
+        _this.render();
+      });
     }
-    $('#timeslider').val(t);
-    $('#time').text(t);
-  }
+  });
+  
+  window.PlayerApp = new PlayerView();
+  PlayerApp.render();
 
-  var MPDApp = new MPDView;
-  MPDApp.render();
+  setInterval(function() {
+    PlayerApp.player.update_status();
+    PlayerApp.render();
+  }, 1000);
 
-  setInterval(status_ping, 10000);
-  setInterval(move_slider, 1000);
 });
