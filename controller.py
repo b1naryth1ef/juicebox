@@ -63,5 +63,9 @@ class Controller(object):
     def previous(self):
       self.cli.previous()
 
+    def next(self):
+      self.cli.next()
+
+
     def seek(self, ts):
       self.cli.seekcur(ts);

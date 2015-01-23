@@ -94,7 +94,7 @@ def route_url_root():
 def route_player_status():
     return APIResponse(app.controller.status())
 
-PLAYER_ACTIONS = [ "skip", "pause", "play", "stop", "shuffle", "random", "clear", "previous", "seek" ]
+PLAYER_ACTIONS = [ "next", "pause", "play", "stop", "shuffle", "random", "clear", "previous", "seek" ]
 
 @app.route("/api/player/<action>")
 @authed
@@ -124,6 +124,10 @@ def route_player_actions(action):
 
     if action == "previous":
       app.controller.previous()
+      return APIResponse()
+
+    if action == "next":
+      app.controller.next()
       return APIResponse()
 
     if action == "seek":
