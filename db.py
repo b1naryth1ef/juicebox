@@ -10,7 +10,7 @@ from gravatar import Gravatar
 db = SqliteExtDatabase("juicebox.db", threadlocals=True)
 
 MUSIC_DIR = "data/music"
-MD5SUM = "md5" if sys.platform == "darwin" else "md5sum"
+MD5SUM = "md5 -q" if sys.platform == "darwin" else "md5sum"
 GN_CLI = "3392512-77AC0BD72360CA0653409F31B97412CF"
 GN_USR = pygn.register(GN_CLI)
 
