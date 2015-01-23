@@ -1,4 +1,4 @@
-music_directory         "~/bt/juicebox"
+#music_directory         "~/bt/juicebox"
 playlist_directory      "~/.mpd/playlists"
 db_file                 "~/.mpd/database"
 pid_file                "~/.mpd/pid"
