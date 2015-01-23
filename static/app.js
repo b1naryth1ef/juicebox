@@ -135,4 +135,9 @@ $(function() {
     PlayerApp.render();
   }, 1000);
 
+  $('body').on('keyup', function(e) {
+    if (e.keyCode == 32) {
+      $('.fa-pause').trigger('click');
+    }
+  });
 });
