@@ -36,3 +36,7 @@ body {
 #timeslider {
   width: 70%;
 }
+#cover_art_div {
+  float: right;
+  padding: 1px;
+}

@@ -13,22 +13,29 @@
     <script type='text/template' id='mpd_template'>
       <div class='mpd_window'>
         <div class='song_info'>
-          <div class='monospace'>
-            <label><%- now_playing.title %></label>
-          </div>
-          <div class='monospace'>
-            <small><label><%- now_playing.artist %></label> - <label><%- now_playing.album %></label></small>
-          </div>
           <div>
-            <span id='time'><%- human_render_time(now_playing.elapsed) %></span>&nbsp;<input id='timeslider' type='range' min=0 max=<%- now_playing.time %> step=1 value=<%- now_playing.elapsed %>/><%- human_render_time(now_playing.time) %>
-          </div>
-        </div>
-        <div class='playlist'>
-          <% _.each(playlist, function(song) { %>
-            <div class='playlist_entry' id='song_<%= song.id %>'>
-              <a href='#' class='playlist_link'><%= song.title %></a><br />
+            <div id='cover_art_div' style='float:right'>
+              <% if(now_playing.cover_url) { %>
+                <img src='<%= now_playing.cover_url %>' width=100></img>
+              <% } %>
             </div>
-          <% }); %>
+            <div class='monospace'>
+              <label><%- now_playing.title %></label>
+            </div>
+            <div class='monospace'>
+              <small><label><%- now_playing.artist %></label> - <label><%- now_playing.album %></label></small>
+            </div>
+            <div>
+              <span id='time'><%- human_render_time(now_playing.elapsed) %></span>&nbsp;<input id='timeslider' type='range' min=0 max=<%- now_playing.time %> step=1 value=<%- now_playing.elapsed %>/><%- human_render_time(now_playing.time) %>
+            </div>
+          </div>
+          <div class='playlist'>
+            <% _.each(playlist, function(song) { %>
+              <div class='playlist_entry' id='song_<%= song.id %>'>
+                <a href='#' class='playlist_link'><%= song.title %></a><br />
+              </div>
+            <% }); %>
+          </div>
         </div>
         <div class='mpd_controls'>
           <i class='fa fa-2x fa-play control_link' data-operation='play' title='Play'></i>
