@@ -180,15 +180,27 @@ def route_api_songs():
         "songs": map(lambda i: i.to_dict(), list(songs))
     })
 
-@app.route("/api/songs/<id>")
+@app.route("/api/songs/<id>", methods=["GET", "PUT"])
 def route_api_songs_single(id):
-    try:
+    if request.method == "GET":
+        try:
+            song = Song.get(Song.id == id)
+        except Song.DoesNotExist:
+            raise APIError("Invalid Song ID")
+        return APIResponse(song.to_dict())
+    else:
+      try:
         song = Song.get(Song.id == id)
-    except Song.DoesNotExist:
+        print request.values
+        song.title = request.values.get("title")
+        song.artist = request.values.get("artist")
+        song.album = request.values.get("album")
+        song.save()
+      except Song.DoesNotExist:
         raise APIError("Invalid Song ID")
-    return APIResponse(song.to_dict())
+      return APIResponse(song.to_dict())
 
-@app.route("/api/songs/upload", methods=["POST"])
+@app.route("/api/songs/new", methods=["POST"])
 @authed
 def route_upload():
     f = request.files["file"]
