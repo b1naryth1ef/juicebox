@@ -68,6 +68,9 @@ $(function() {
     seek: function(ts) {
       $.get(this.urlRoot + '/seek?ts=' + ts.toString());
     },
+    queue: function(id) {
+      $.get(this.urlRoot + '/queue/song', { song: id });
+    },
     update_status: function() {
       var _this = this;
       $.getJSON(this.urlRoot + '/status').success(function(data) {
@@ -125,6 +128,19 @@ $(function() {
         _this.render();
       });
     }
+  });
+
+  $('#search_button').on('click', function() {
+    $('#search_results').empty();
+    $.getJSON('/api/search', { query: $('#search_box').val() }).done(function(data) {
+      _.each(data.songs, function(song) {
+        $('#search_results').append(_.template($('#song_list_template').html())(song));
+        $('#search_result_' + song.id + ' a').on('click', function() {
+          PlayerApp.player.queue(song.id);
+        });
+      });
+      $('#search_results').show();
+    });
   });
   
   window.PlayerApp = new PlayerView();

@@ -40,3 +40,14 @@ body {
   float: right;
   padding: 1px;
 }
+#search {
+  width: 60%;
+  padding-top: 20px;
+}
+#search_results {
+  border: 1px solid;
+  display:none;
+}
+.search_result {
+  border-bottom: 1px solid;
+}
