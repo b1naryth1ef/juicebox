@@ -225,7 +225,7 @@ def route_api_playlists_single(id):
     except Playlist.DoesNotExist:
         raise APIError("Invalid Playlist ID")
 
-    return APIResponse(pl.to_dict(tiny=False))
+    return APIResponse(pl.to_dict())
 
 @app.route("/api/playlists/create")
 @authed
